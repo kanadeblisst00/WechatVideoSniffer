@@ -2,17 +2,19 @@
 
 微信视频号PC版视频地址嗅探器
 
-本项目采用[aardio](https://www.aardio.com/)编程语言开发
+本项目采用[aardio](https://www.aardio.com/)编程语言开发，
+
+本项目Fork自[WechatVideoSniffer](https://github.com/xuncv/WechatVideoSniffer)，然后根据看雪的[一篇文章](https://bbs.kanxue.com/thread-279740-1.htm)增加了解密视频的逻辑
 
 ## 原理
 
 使用FiddlerCore .Net组件，注册系统代理，监听主机的http/https请求，从而匹配出微信视频号视频的地址, 然后下载并解密
 
-说明的文章: [写个视频号下载工具](https://mp.weixin.qq.com/s/sjjsKC9UlK7ZBoeE2JmZIQ)
+工具原理说明: [写一个视频号下载工具](https://mp.weixin.qq.com/s/sjjsKC9UlK7ZBoeE2JmZIQ)
 
 ## 使用方法
 
-先点击监听(第一次会提示安装证书)，然后打开一个视频，就能在文本框看到监听到的下载链接和弹出的下载进度条。只要拦截到就会自动下载到当前软件的`cache`目录下
+以管理员权限运行该软件，先点击监听(第一次会提示安装证书)，然后打开一个视频，就能在文本框看到监听到的下载链接和弹出的下载进度条。只要拦截到就会打印链接，并自动下载到当前软件的`cache`目录下
 
 注意事项：
 
@@ -23,6 +25,8 @@
 ## 软件获取
 
 自行编译或工程`dist`目录下载
+
+dist目录下Release和Debug，区别只在于Debug会打开控制台窗口，用于打印异常
 
 ## 联系方式
 
