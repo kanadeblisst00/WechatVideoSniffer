@@ -1,0 +1,152 @@
+import win.ui;
+import fiddlercore;
+import process;
+import fsys;
+/*DSG{{*/
+mainForm = win.form(text="WechatVideoSniffer";right=903;bottom=591;border="dialog frame")
+mainForm.add(
+btnSniffer={cls="button";text="监听";left=794;top=14;right=885;bottom=51;z=1};
+btnStop={cls="button";text="停止";left=794;top=70;right=885;bottom=107;z=2};
+clearEdit={cls="button";text="清空输出";left=792;top=136;right=883;bottom=173;z=4};
+deleteCache={cls="button";text="删除缓存";left=792;top=216;right=883;bottom=253;z=5};
+richedit={cls="richedit";left=24;top=16;right=776;bottom=576;edge=1;font=LOGFONT(h=-16);link=1;multiline=1;readonly=1;vscroll=1;wrap=1;z=3}
+)
+/*}}*/
+
+
+//io.open()
+
+
+var DownloadVideo = function(mainForm, video_url, decArray){
+	import fsys;
+	import inet.downBox;
+	
+	var log = string.format("拦截到视频下载链接: %s", video_url);
+	mainForm.richedit.appendText(log + '\r\n')
+	// 随机文件名
+	math.randomize()
+	var name = string.random(6);
+	var filename = io.localpath("/cache/" + name + "_raw" + ".dec");
+	// 开始下载视频
+	var downBox = inet.downBox(mainForm, "下载视频...", true )
+	if(downBox.test(video_url, filename) === null){
+		winform.msgboxErr("下载错误,HTTP错误代码:"+ ( downBox.statusCode : ""));
+		return; 
+	}
+	if( downBox.download(video_url, filename) ){
+		mainForm.richedit.appendText('下载视频完成，开始解密。\r\n');
+	}
+	// 开始解密视频
+	var encVideoBin = string.load(filename);
+	var videoSize = #encVideoBin;
+	var decSize = 131072;
+	var decVideoArray = {};
+	for(i=1;videoSize;1){
+		if(i<=decSize){
+			table.push(decVideoArray, encVideoBin[i] ^ decArray[i])
+		}else{
+			table.push(decVideoArray, encVideoBin[i])
+		}
+		
+	}
+	var videoFilename = io.localpath("/cache/"+name+".mp4");
+	string.save(videoFilename, string.pack(decVideoArray));
+	mainForm.richedit.appendText("视频已下载，保存的路径: "+videoFilename+'\r\n')
+	// 删除缓存
+	fsys.delete(filename);
+	fsys.delete(filename+".dow!oad");
+}
+
+var onBeforeRequest = function(session){
+	if(!session.isHTTPS) return;
+	if(session.RequestMethod == "GET" && ..string.endWith(session.fullUrl, "/worker_release.js")){
+		session.bBufferResponse = true;
+		session.oRequest.headers.Remove("Accept-Encoding");
+		//session.oRequest.headers.Add("Accept-Encoding", "gzip");
+	}
+	
+	if(session.RequestMethod == "POST" && ..string.find(session.hostname, "@www.httpbin.org")){
+		var decArray = session.RequestBody;
+		var video_url = ..thread.get("VIDEO_DOWNLOAD_URL");
+		..thread.invoke(DownloadVideo, mainForm, video_url , decArray)
+		session.utilCreateResponseAndBypassServer();
+		session.oResponse.headers.HTTPResponseCode = 200;
+        session.oResponse.headers.HTTPResponseStatus = "200 OK";
+        session.oResponse.headers.Add("Access-Control-Allow-Origin", "*");
+        session.oResponse.headers.Add("Access-Control-Allow-Headers", "*");
+        session.oResponse.headers.Add("Access-Control-Allow-Methods", "OPTIONS,POST,GET");
+        session.utilSetResponseBody("<html><body>success!</body></html>");
+	}
+	
+}
+
+var onBeforeResponse = function(session){
+	if(!session.isHTTPS) return;
+	var fullUrl = session.fullUrl;
+	if(session.RequestMethod == "GET" && ..string.endWith(fullUrl, "/worker_release.js")){
+		var s = "var rr=\2.reverse();fetch('https://www.httpbin.org/post',{method:'POST',headers:{'Content-Type':'application/octet-stream',},body:rr,}).then(response=>{console.log(response.ok,response.body)});\1.decryptor_array.set(rr);";
+		session.utilDecodeResponse();
+		var ResponseBody = session.ResponseBody;
+		var new_body = ..string.replace(ResponseBody, "(\w)\.decryptor_array\.set\((\w)\.reverse\(\)\)", s);
+		session.utilSetResponseBody(new_body);
+	}
+	if(..string.find(fullUrl, "@finder.video.qq.com/251/20302")){
+		if(session.RequestMethod == "HEAD"){
+			..thread.set("VIDEO_DOWNLOAD_URL", fullUrl);
+		}
+		session.oResponse.headers.Add("Access-Control-Allow-Origin", "*");
+        session.oResponse.headers.Add("Access-Control-Allow-Headers", "*");
+        session.oResponse.headers.Add("Access-Control-Allow-Methods", "OPTIONS,POST,GET");
+	}
+	
+}
+
+fsys.createDir("\cache");
+
+
+
+mainForm.btnSniffer.oncommand = function(id,event){
+	fiddlercore.InstallCertificate()
+	fiddlercore.AttachListening(onBeforeRequest,onBeforeResponse,)
+	fiddlercore.StartupFiddlerCore()
+	mainForm.btnSniffer.disabled = true
+}
+
+mainForm.btnStop.oncommand = function(id,event){
+	//UninstallCertificate()
+	fiddlercore.UninstallFiddler()
+	mainForm.btnSniffer.disabled = false
+}
+
+mainForm.onClose = function(hwnd,message,wParam,lParam){
+   	//UninstallCertificate()
+	fiddlercore.UninstallFiddler() 
+}
+
+mainForm.clearEdit.oncommand = function(id,event){
+	mainForm.richedit.text = "";
+}
+
+mainForm.deleteCache.oncommand = function(id,event){
+	if(process.find("WeChat.exe")){
+		win.msgbox("删除缓存需要先关闭微信！", "错误提示");
+		return;
+	}
+	thread.invoke( 
+		function(){	
+			import fsys;
+			import win;
+			
+			var cachePath = io.fullpath(io.appData("..\Roaming\Tencent\WeChat\radium\web\profiles"));
+			if(!io.exist(cachePath)){
+				return;
+			}
+			fsys.delete(cachePath)
+			var tip = io.exist(cachePath) ? "删除缓存目录成功!" : "删除失败，请手动删除，或者以管理员权限启动够重试!";
+			win.msgbox(tip, "删除提示");
+		}
+	)
+}
+
+mainForm.show();
+return win.loopMessage();

@@ -1,0 +1,58 @@
+﻿import dotNet;
+namespace fiddlercore;
+
+
+..dotNet.reference({
+	"FiddlerCore4" = $"res\FiddlerCore4.dll";
+	"CertMaker" = $"res\CertMaker.dll";
+	"BCMakeCert" = $"res\BCMakeCert.dll";
+	"BasicFormatsForCore" = $"res\BasicFormatsForCore.dll"
+})
+
+var FiddlerCore4 = ..dotNet.load("FiddlerCore4");
+var Fiddler = FiddlerCore4.import("Fiddler");
+
+InstallCertificate = function(){
+	if(!Fiddler.CertMaker.rootCertExists()){
+		if(!Fiddler.CertMaker.createRootCert()){
+			return false;
+		}
+		if(Fiddler.CertMaker.trustRootCert()){
+			return false;
+		}
+	}
+	return true;
+}
+
+UninstallCertificate = function(){
+	if(Fiddler.CertMaker.rootCertExists()){
+		if(!Fiddler.CertMaker.removeFiddlerGeneratedCerts(true)){
+			return false;
+		}
+	}
+	return true;
+}
+
+AttachListening = function(onBeforeRequest, onBeforeResponse, onAfterSessionComplete){
+	 if(onBeforeRequest) Fiddler.FiddlerApplication.BeforeRequest = onBeforeRequest;
+
+	 if(onBeforeResponse) Fiddler.FiddlerApplication.BeforeResponse = onBeforeResponse;
+	 
+	 if(onAfterSessionComplete) Fiddler.FiddlerApplication.AfterSessionComplete = onAfterSessionComplete;
+	 
+	 //Fiddler.FiddlerApplication.RequestHeadersAvailable = function(session){}
+	 //Fiddler.FiddlerApplication.ResponseHeadersAvailable = function(session){}
+	 
+}
+
+StartupFiddlerCore = function(port){
+	if(!port) port = 39898;
+	var flags = Fiddler.FiddlerCoreStartupFlags.Default | Fiddler.FiddlerCoreStartupFlags.RegisterAsSystemProxy | Fiddler.FiddlerCoreStartupFlags.AllowRemoteClients;
+	Fiddler.FiddlerApplication.Startup(port, flags)
+}
+
+UninstallFiddler = function(){
+	if(Fiddler.FiddlerApplication.IsStarted()){
+		Fiddler.FiddlerApplication.Shutdown();
+	}
+}
