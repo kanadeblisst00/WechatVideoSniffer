@@ -5,8 +5,8 @@ config  = fsys.config("/config/");
 
 //不需要序列化的配置名字前请添加下划线
 namespace config {
-	__appName = "应用程序名";
-	__website = "http://www.aardio.com/";
+	__appName = "视频号下载器";
+	__website = "https://github.com/kanadeblisst00/WechatVideoSniffer";
 }
 
 /**intellisense(config)

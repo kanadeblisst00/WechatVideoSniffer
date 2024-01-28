@@ -32,7 +32,7 @@ dist目录下Release和Debug，区别只在于Debug会打开控制台窗口，�
 
 建了个群, 有问题及时反馈
 
-![](http://cdn.ikanade.cn/room1.jpg)
+![](http://cdn.ikanade.cn/room2.jpg)
 
 ## 感谢
 

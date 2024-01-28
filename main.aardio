@@ -21,11 +21,13 @@ var DownloadVideo = function(mainForm, video_url, decArray){
 	import inet.downBox;
 	
 	var log = string.format("拦截到视频下载链接: %s", video_url);
-	mainForm.richedit.appendText(log + '\r\n')
+	mainForm.richedit.appendText(log + '\r\n');
+	..io.print(log);
 	// 随机文件名
 	math.randomize()
 	var name = string.random(6);
 	var filename = io.localpath("/cache/" + name + "_raw" + ".dec");
+	..io.print("开始下载视频，视频临时文件路径: ", filename);
 	// 开始下载视频
 	var downBox = inet.downBox(mainForm, "下载视频...", true )
 	if(downBox.test(video_url, filename) === null){
@@ -38,7 +40,8 @@ var DownloadVideo = function(mainForm, video_url, decArray){
 	// 开始解密视频
 	var encVideoBin = string.load(filename);
 	var videoSize = #encVideoBin;
-	var decSize = 131072;
+	..io.print("开始解密视频，视频大小: ", videoSize, "加密块大小: ", #decArray);
+	var decSize = #decArray; // 131072
 	var decVideoArray = {};
 	for(i=1;videoSize;1){
 		if(i<=decSize){
@@ -49,9 +52,11 @@ var DownloadVideo = function(mainForm, video_url, decArray){
 		
 	}
 	var videoFilename = io.localpath("/cache/"+name+".mp4");
+	..io.print("开始解密完成，保存的路径", videoFilename);
 	string.save(videoFilename, string.pack(decVideoArray));
 	mainForm.richedit.appendText("视频已下载，保存的路径: "+videoFilename+'\r\n')
 	// 删除缓存
+	..io.print("删除缓存文件, 文件路径: ", filename);
 	fsys.delete(filename);
 	fsys.delete(filename+".dow!oad");
 }
@@ -60,6 +65,7 @@ var onBeforeRequest = function(session){
 	if(!session.isHTTPS) return;
 	if(session.RequestMethod == "GET" && ..string.endWith(session.fullUrl, "/worker_release.js")){
 		session.bBufferResponse = true;
+		// 移除压缩，不然返回的数据会是压缩的格式。aardio处理不了br压缩，只能处理gzip
 		session.oRequest.headers.Remove("Accept-Encoding");
 		//session.oRequest.headers.Add("Accept-Encoding", "gzip");
 	}
@@ -138,6 +144,7 @@ mainForm.deleteCache.oncommand = function(id,event){
 			
 			var cachePath = io.fullpath(io.appData("..\Roaming\Tencent\WeChat\radium\web\profiles"));
 			if(!io.exist(cachePath)){
+				win.msgbox("缓存文件不存在，无需删除!", "删除提示");
 				return;
 			}
 			fsys.delete(cachePath)
