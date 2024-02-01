@@ -39,9 +39,9 @@
 
 ## 软件获取
 
-自行编译或工程`dist`目录下载
+自行编译工程或者到`[视频号下载助手](https://github.com/kanadeblisst00/WechatVideoSniffer/releases/download/Release/_20240201.zip)`下载
 
-dist目录下Release和Debug，区别只在于Debug会打开控制台窗口，用于打印异常
+两个文件区别只在于调试会打开控制台窗口，用于打印异常
 
 如果杀毒软件报毒请添加到白名单或者自己编译一个(应该也是报毒)
 
