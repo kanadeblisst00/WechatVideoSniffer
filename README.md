@@ -49,7 +49,9 @@
 
 建了个群, 有问题及时反馈
 
-![](http://cdn.ikanade.cn/room2.jpg)
+![](http://cdn.ikanade.cn/feed_room_qrcode_20240229.jpg)
+
+如果二维码失效了，可以加我好友`kanadeblisst`，备注`视频号群`
 
 ## 感谢
 
