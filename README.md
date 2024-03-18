@@ -2,7 +2,7 @@
 
 重构了一个新版本，新版本没有开源代码，但依旧可以免费使用(需要关注公众号)
 
-https://github.com/kanadeblisst00/WechatVideoSniffer2.0
+https://github.com/kanadeblisst00/WechatVideoSniffer2.0 
 
 # WechatVideoSniffer
 
