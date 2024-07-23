@@ -2,63 +2,104 @@ import win.ui;
 import fiddlercore;
 import process;
 import fsys;
+import fsys.file;
+import thread.table;
 /*DSG{{*/
-mainForm = win.form(text="WechatVideoSniffer";right=903;bottom=591;border="dialog frame")
+mainForm = win.form(text="视频号下载助手(免费版)";right=903;bottom=591;border="dialog frame")
 mainForm.add(
-btnSniffer={cls="button";text="监听";left=794;top=14;right=885;bottom=51;z=1};
-btnStop={cls="button";text="停止";left=794;top=70;right=885;bottom=107;z=2};
-clearEdit={cls="button";text="清空输出";left=792;top=136;right=883;bottom=173;z=4};
-deleteCache={cls="button";text="删除缓存";left=792;top=216;right=883;bottom=253;z=5};
-richedit={cls="richedit";left=24;top=16;right=776;bottom=576;edge=1;font=LOGFONT(h=-16);link=1;multiline=1;readonly=1;vscroll=1;wrap=1;z=3}
+btnSniffer={cls="button";text="监听";left=794;top=14;right=885;bottom=51;font=LOGFONT(h=-16);z=1};
+btnStop={cls="button";text="停止";left=794;top=70;right=885;bottom=107;font=LOGFONT(h=-16);z=2};
+button={cls="button";text="需求定制";left=792;top=432;right=883;bottom=469;z=9};
+deleteCache={cls="button";text="删除缓存";left=792;top=128;right=883;bottom=165;z=3};
+listview={cls="listview";left=16;top=8;right=200;bottom=568;edge=1;font=LOGFONT(h=-16);z=4};
+opendir={cls="button";text="下载路径";left=792;top=240;right=883;bottom=277;z=7};
+reInstall={cls="button";text="重装证书";left=792;top=184;right=883;bottom=221;z=5};
+richedit={cls="richedit";left=200;top=8;right=784;bottom=568;edge=1;font=LOGFONT(h=-16);multiline=1;readonly=1;vscroll=1;wrap=1;z=6};
+suggest={cls="button";text="建议反馈";left=792;top=368;right=883;bottom=405;z=8}
 )
 /*}}*/
 
-io.open()
+//io.open()
+
+var DownloadVideoUrlTable = thread.table("DownloadVideoUrlTable", true);
 
 
-var DownloadVideo = function(mainForm, video_url, decArray){
-	import fsys;
+var DownloadVideo = function(mainForm){
+	import win;
 	import inet.downBox;
+	import thread.table;
+	import fsys;
+	import fsys.file;
 	
-	var log = string.format("拦截到视频下载链接: %s", video_url);
-	mainForm.richedit.appendText(log + '\r\n');
-	..io.print(log);
-	// 随机文件名
-	math.randomize()
-	var name = string.random(6);
-	var filename = io.localpath("/cache/" + name + "_raw" + ".dec");
-	..io.print("开始下载视频，视频临时文件路径: ", filename);
-	// 开始下载视频
-	var downBox = inet.downBox(mainForm, "下载视频...", true )
-	if(downBox.test(video_url, filename) === null){
-		winform.msgboxErr("下载错误,HTTP错误代码:"+ ( downBox.statusCode : ""));
-		return; 
-	}
-	if( downBox.download(video_url, filename) ){
-		mainForm.richedit.appendText('下载视频完成，开始解密。\r\n');
-	}
-	// 开始解密视频
-	var encVideoBin = string.load(filename);
-	var videoSize = #encVideoBin;
-	..io.print("开始解密视频，视频大小: ", videoSize, "加密块大小: ", #decArray);
-	var decSize = #decArray; // 131072
-	var decVideoArray = {};
-	for(i=1;videoSize;1){
-		if(i<=decSize){
-			table.push(decVideoArray, encVideoBin[i] ^ decArray[i])
-		}else{
-			table.push(decVideoArray, encVideoBin[i])
+	math.randomize();
+	
+	var DownloadVideoUrlTable = thread.table("DownloadVideoUrlTable");
+	
+	//var videoDecryptSize = 131072;
+	
+	while(thread.get("DownloadVideoRunning")){
+		var old_video_url = mainForm.listview.getItemText(1, 1, 10240);
+		if(!old_video_url || !#old_video_url){
+			win.delay(100);
+			continue;
 		}
+		var video_url = string.replace(old_video_url, "\&X-snsvideoflag=(\w+)", "");
+		mainForm.richedit.appendText("开始通过链接下载视频， 链接: " + video_url + '\r\n')
+		io.print("开始通过链接下载视频， 链接: ", video_url);
+		var decArrayPath = DownloadVideoUrlTable.get(old_video_url);
+		if(!decArrayPath){
+			io.print("获取链接解密数组失败: ", video_url);
+			mainForm.listview.delItem(1);
+			win.delay(100);
+			continue;
+		}
+		if(!io.exist(decArrayPath)){
+			io.print("解密数组路径获取失败！")
+			mainForm.listview.delItem(1);
+			win.delay(100);
+			continue;
+		}
+		var f = fsys.file(decArrayPath, "r");
+		var decArray = f.readAll();
+		f.close();
+		fsys.delete(decArrayPath);
+		var name = string.random(6);
+		var filename = io.localpath("/cache/" + name + "_raw" + ".dec");
 		
+		var downBox = inet.downBox(mainForm, "下载视频...", true )
+		if(downBox.test(video_url, filename) === null){
+			io.print("下载错误, HTTP错误代码: "+ ( downBox.statusCode : ""));
+			continue; 
+		}
+		if(downBox.download(video_url, filename) ){
+			io.print('视频下载完成。\r\n');
+		}
+		fsys.delete(filename+".dow!oad");
+		var decSize = #decArray; // 131072
+		var fw = fsys.file(filename, "r+");
+		var encVideoBin = fw.read(decSize);
+		
+		io.print("开始解密视频，加密块大小: ", #encVideoBin, decSize);
+		var decVideoArray = {};
+		for(i=1;decSize;1){
+			table.push(decVideoArray, encVideoBin[i] ^ decArray[i])
+		}
+		var videoFilename = io.localpath("/视频/" + name + ".mp4");
+		thread.set("curVideoFilename", videoFilename);
+		var decVideoBin = string.pack(decVideoArray);
+		fw.seek("set");
+		fw.write(decVideoBin);
+		fw.close();
+		win.delay(100);
+		fsys.move(filename, videoFilename);
+		//fsys.copy(filename, videoFilename)
+		mainForm.richedit.appendText("下载并解密完成，已保存视频到路径: " + videoFilename + '\r\n')
+		io.print("解密完成，已保存视频到路径: ", videoFilename);
+		DownloadVideoUrlTable.set(old_video_url, null);
+		mainForm.listview.delItem(1);
+		win.delay(200);
 	}
-	var videoFilename = io.localpath("/cache/"+name+".mp4");
-	..io.print("开始解密完成，保存的路径", videoFilename);
-	string.save(videoFilename, string.pack(decVideoArray));
-	mainForm.richedit.appendText("视频已下载，保存的路径: "+videoFilename+'\r\n')
-	// 删除缓存
-	..io.print("删除缓存文件, 文件路径: ", filename);
-	fsys.delete(filename);
-	fsys.delete(filename+".dow!oad");
+	
 }
 
 var onBeforeRequest = function(session){
@@ -73,7 +114,19 @@ var onBeforeRequest = function(session){
 	if(session.RequestMethod == "POST" && ..string.find(session.hostname, "@www.httpbin.org")){
 		var decArray = session.RequestBody;
 		var video_url = ..thread.get("VIDEO_DOWNLOAD_URL");
-		..thread.invoke(DownloadVideo, mainForm, video_url , decArray)
+		if(video_url) {
+			io.print("拦截到视频下载链接和解密数组: ", video_url);
+			thread.set("VIDEO_DOWNLOAD_URL", null);
+			var savePath = io.localpath("/cache/"+string.random(16)+".bin");
+			//string.save(savePath, decArray)
+			var f = fsys.file(savePath, "w");
+			if(type(decArray) == type.buffer) decArray = raw.tostring(decArray);
+			f.write(decArray);
+			f.close();
+			DownloadVideoUrlTable.set(video_url, savePath)
+			mainForm.listview.addItem({video_url});
+			//..thread.invoke(DownloadVideo, mainForm, video_url , decArray);
+		}
 		session.utilCreateResponseAndBypassServer();
 		session.oResponse.headers.HTTPResponseCode = 200;
         session.oResponse.headers.HTTPResponseStatus = "200 OK";
@@ -96,7 +149,13 @@ var onBeforeResponse = function(session){
 		session.utilSetResponseBody(new_body);
 	}
 	if(..string.find(fullUrl, "@finder.video.qq.com/251/20302")){
+		//..io.print(session.RequestMethod, fullUrl)
 		if(session.RequestMethod == "HEAD"){
+			/*if(!..string.find(fullUrl, "@X-snsvideoflag=xWT158") && !..string.find(fullUrl, "@X-snsvideoflag=xV10")){
+				..io.print(fullUrl)
+				..thread.set("VIDEO_DOWNLOAD_URL", fullUrl);
+			}*/
+			
 			..thread.set("VIDEO_DOWNLOAD_URL", fullUrl);
 		}
 		session.oResponse.headers.Add("Access-Control-Allow-Origin", "*");
@@ -106,9 +165,60 @@ var onBeforeResponse = function(session){
 	
 }
 
-fsys.createDir("\cache");
+var deleteCacheDir = function(){	
+	import fsys;
+	import win;
+	import win.clip;
+	
+	var cachePath = io.fullpath(io.appData("..\Roaming\Tencent\WeChat\radium\web\profiles"));
+	if(!io.exist(cachePath)){
+		win.msgbox( cachePath+" 缓存目录不存在，无需删除!", "删除提示");
+		return;
+	}
+	fsys.delete(cachePath)
+	..win.delay(2000);
+	win.clip.write(cachePath);
+	var tip = io.exist(cachePath) ? cachePath+"。删除缓存目录成功!" : cachePath+"。删除失败，请手动删除，或者以管理员权限启动够重试!";
+	win.msgbox(tip, "删除提示");
+}
 
 
+var main = function(){
+	math.randomize();
+	fsys.createDir("\cache");
+	fsys.createDir("\视频");
+	mainForm.listview.insertColumn( "下载链接",-1 )
+	thread.set("DownloadVideoRunning", true);
+	thread.invoke(DownloadVideo, mainForm);
+	var menuHelp = win.ui.popmenu(mainForm);
+	menuHelp.add("提示信息",
+		function(id){
+			var s = "该软件为免费软件，如果你付费获取的，请立马退款。如果遇到无法下载的，可以进微信群反馈。微信群可以加我好友邀你或者通过公众号菜单栏获取。";
+			..win.msgbox(s,' ');
+		} 
+	)
+	menuHelp.add("开发者公众号",
+		function(id){
+			process.execute("https://vip.123pan.cn/1812757665/imgur/qrcode_for_gh_98e6c50f500b_344.jpg")
+		} 
+	)
+	menuHelp.add("开发者微信",
+		function(id){
+			process.execute("https://vip.123pan.cn/1812757665/imgur/wechat_qrcode.jpg")
+		} 
+	)
+	menuHelp.add("关于",
+		function(id){
+			var s = '开发者 公众号: Python成长路, 微信: kanadeblisst';
+			..win.msgbox(s,' ');
+		} 
+	)
+	menuHelp.add(); 
+	var menu = win.ui.menu(mainForm);
+	menu.add('帮助信息', menuHelp); 
+}
+
+main();
 
 mainForm.btnSniffer.oncommand = function(id,event){
 	fiddlercore.InstallCertificate()
@@ -125,11 +235,9 @@ mainForm.btnStop.oncommand = function(id,event){
 
 mainForm.onClose = function(hwnd,message,wParam,lParam){
    	//UninstallCertificate()
+   	thread.set("DownloadVideoRunning", false);
+   	..win.delay(100);
 	fiddlercore.UninstallFiddler() 
-}
-
-mainForm.clearEdit.oncommand = function(id,event){
-	mainForm.richedit.text = "";
 }
 
 mainForm.deleteCache.oncommand = function(id,event){
@@ -137,21 +245,31 @@ mainForm.deleteCache.oncommand = function(id,event){
 		win.msgbox("删除缓存需要先关闭微信！", "错误提示");
 		return;
 	}
-	thread.invoke( 
-		function(){	
-			import fsys;
-			import win;
-			
-			var cachePath = io.fullpath(io.appData("..\Roaming\Tencent\WeChat\radium\web\profiles"));
-			if(!io.exist(cachePath)){
-				win.msgbox("缓存文件不存在，无需删除!", "删除提示");
-				return;
-			}
-			fsys.delete(cachePath)
-			var tip = io.exist(cachePath) ? "删除缓存目录成功!" : "删除失败，请手动删除，或者以管理员权限启动够重试!";
-			win.msgbox(tip, "删除提示");
-		}
-	)
+	thread.invoke(deleteCacheDir);
+}
+
+mainForm.reInstall.oncommand = function(id, event){
+	fiddlercore.UninstallCertificate();
+	fiddlercore.InstallCertificate();
+}
+
+mainForm.opendir.oncommand = function(id,event){
+	var curVideoFilename = thread.get("curVideoFilename");
+	if(!curVideoFilename) {
+		var path = io.localpath("/视频");
+		process.explore(path);
+	}
+	else {
+		process.explore_select(curVideoFilename);
+	}
+}
+
+mainForm.suggest.oncommand = function(id,event){
+	win.msgbox("请通过左上角的帮助信息加我好友邀你进群！","");
+}
+
+mainForm.button.oncommand = function(id,event){
+	win.msgbox("如果当前的软件满足不了你的需求，你可以提出需求和预算我帮你改(左上角帮助信息有联系方式)！","");
 }
 
 mainForm.show();

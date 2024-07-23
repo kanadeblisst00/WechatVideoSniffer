@@ -1,3 +1,8 @@
+## 最新版本
+
+这个有优化的开源版本，请看：`https://github.com/kanadeblisst00/WechatVideoSniffer2.0`
+
+
 # WechatVideoSniffer
 
 微信视频号PC版视频地址嗅探器
@@ -33,23 +38,28 @@
 
 ## 待更新的问题
 
-- 预览的视频也会被下载，后面看看能不能过滤掉
-- 有些视频会出现 not enough memory，暂未找到原因
-- 取消自动下载，设置成手动下载
+- [x] 增加获取管理员权限弹窗，避免每次都要右键以管理员权限运行
+- [x] 预览的视频也会被下载，后面看看能不能过滤掉
+- [ ] 有些视频会出现 not enough memory，暂未找到原因
+- [ ] 取消自动下载，设置成手动下载
+
+`not enough memory`是因为fiddlecore是2016年的东西，一直没有更新，它不会自己释放内存。当增长到软件能获取的最大内存时，就出现了这个错误。可以手动用一些工具释放内存，比如`Mem Reduct`或者电脑管家等
 
 ## 软件获取
 
-自行编译或工程`dist`目录下载
+到 `https://github.com/kanadeblisst00/WechatVideoSniffer/releases` 下载
 
 dist目录下Release和Debug，区别只在于Debug会打开控制台窗口，用于打印异常
 
-如果杀毒软件报毒请添加到白名单或者自己编译一个(应该也是报毒)
+如果杀毒软件报毒请添加到白名单或者删除它
 
 ## 联系方式
 
 建了个群, 有问题及时反馈
 
-![](http://cdn.ikanade.cn/room2.jpg)
+![](http://cdn.ikanade.cn/feed_room_qrcode_20240229.jpg)
+
+如果二维码失效了，可以加我好友`kanadeblisst`，备注`视频号群`
 
 ## 感谢
 
