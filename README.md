@@ -1,15 +1,6 @@
-<<<<<<< HEAD
 ## 最新版本
 
 这个有优化的开源版本，请看：`https://github.com/kanadeblisst00/WechatVideoSniffer2.0`
-
-=======
-# 最新版本
-
-重构了一个新版本，新版本没有开源代码，但依旧可以免费使用(需要关注公众号)
-
-https://github.com/kanadeblisst00/WechatVideoSniffer2.0 
->>>>>>> 9ac848f3a70b23e8103236a1075b42a7c236a5f4
 
 # WechatVideoSniffer
 
@@ -55,11 +46,7 @@ https://github.com/kanadeblisst00/WechatVideoSniffer2.0
 
 ## 软件获取
 
-<<<<<<< HEAD
 到 `https://github.com/kanadeblisst00/WechatVideoSniffer/releases` 下载
-=======
-自行编译工程或者到`[视频号下载助手](https://github.com/kanadeblisst00/WechatVideoSniffer/releases/download/Release/_20240201.zip)`下载
->>>>>>> 9ac848f3a70b23e8103236a1075b42a7c236a5f4
 
 两个文件区别只在于调试会打开控制台窗口，用于打印异常
 
@@ -67,15 +54,7 @@ https://github.com/kanadeblisst00/WechatVideoSniffer2.0
 
 ## 联系方式
 
-建了个群, 有问题及时反馈
-
-<<<<<<< HEAD
-![](http://cdn.ikanade.cn/feed_room_qrcode_20240229.jpg)
-=======
-![](http://cdn.ikanade.cn/%E5%BE%AE%E4%BF%A1%E5%9B%BE%E7%89%87_20240312154230.jpg)
->>>>>>> 9ac848f3a70b23e8103236a1075b42a7c236a5f4
-
-如果二维码失效了，可以加我好友`kanadeblisst`，备注`视频号群`
+群见新开源的仓库
 
 ## 感谢
 
